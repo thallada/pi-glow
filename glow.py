@@ -24,6 +24,12 @@ parser.add_argument('-m', '--minimum', type=int, default=0,
 parser.add_argument('-n', '--no_dim', action='store_true', default=False,
 		help='Instead of fading out to a dim minimum, only pause at max glow'
 		'and then fade to the next random color.')
+parser.add_argument('-L', '--min_color', type=int, default=0,
+		help='Minimum of the range to select color values from. A higher value will'
+		'make brighter colors. (valid range: 0-255)')
+parser.add_argument('-H', '--max_color', type=int, default=255,
+		help='Maximum of the range to select color values from. A lower value will'
+		'make dimmer colors. (valid range: 0-255)')
 parser.add_argument('-v', '--verbose', action='store_true', default=False,
 		help='Display debug printouts of the current and target colors at every '
 		'sub-interval')
@@ -50,6 +56,8 @@ interval = parser.parse_args().interval
 glow_pause = parser.parse_args().glow_pause
 dim_pause = parser.parse_args().dim_pause
 minimum = parser.parse_args().minimum
+min_color = parser.parse_args().min_color
+max_color = parser.parse_args().max_color
 no_dim = parser.parse_args().no_dim
 verbose = parser.parse_args().verbose
 if verbose: print "Allocating..."
@@ -177,7 +185,7 @@ spidev.flush()
 
 # Now, glow
 while True:
-	color = tuple([random.randint(0, len(gamma)-1) for x in range(3)])
+	color = tuple([random.randint(min_color, max_color) for x in range(3)])
 	# Wrap in try/except block for graceful exiting via KeyboardInterrupt
 	try:
 		fade_to_color(color, array, gamma, step=step,
