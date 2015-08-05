@@ -17,6 +17,9 @@ parser.add_argument('-b', '--bpm', type=int, default=140,
 parser.add_argument('-v', '--verbose', action='store_true', default=False,
 		help='Display debug printouts of the current and target colors at every '
 		'sub-interval')
+parser.add_argument('-f', '--fake', action='store_true', default=False,
+		help='Run the program but don\'t actually display lights on '
+                'the LED strip.')
 
 # Set the spi file
 dev       = "/dev/spidev0.0"
@@ -37,6 +40,7 @@ for i in range(256):
 # R, G, B byte per pixel, plus extra '0' byte at end for latch.
 bpm = parser.parse_args().bpm
 verbose = parser.parse_args().verbose
+fake = parser.parse_args().fake
 if verbose: print "Allocating..."
 array = bytearray(height * 3 + 1)
 
@@ -50,8 +54,9 @@ def test_gamma(strip, gamma):
 			strip[y3]     = color
 			strip[y3 + 1] = color
 			strip[y3 + 2] = color
-		spidev.write(strip)
-		spidev.flush()
+                if not fake:
+                    spidev.write(strip)
+                    spidev.flush()
 		time.sleep(0.5)
 
 def rgb_to_gamma(color, gamma):
@@ -140,8 +145,9 @@ def fade_to_color(color, strip, gamma, step=1, interval=0.1, pause=1):
 		# Increment counter. If at next step, then write to spi and wait
 		counter = counter + 1
 		if counter % step == 0: 
-			spidev.write(strip)
-			spidev.flush()
+                        if not fake:
+                            spidev.write(strip)
+                            spidev.flush()
 			time.sleep(interval)
 		# Update the current color for the while condition comparison
 		current = get_current_color(strip, gamma)
@@ -159,8 +165,9 @@ def display_color(color, strip, gamma):
         strip[y3] = color[1]
         strip[y3 + 1] = color[0]
         strip[y3 + 2] = color[2]
-    spidev.write(strip)
-    spidev.flush()
+    if not fake:
+        spidev.write(strip)
+        spidev.flush()
 
 def clear(array, gamma):
     # clear out array
@@ -170,8 +177,9 @@ def clear(array, gamma):
         array[y3]     = gamma[value[1]]
         array[y3 + 1] = gamma[value[0]]
         array[y3 + 2] = gamma[value[2]]
-    spidev.write(array)
-    spidev.flush()
+    if not fake:
+        spidev.write(array)
+        spidev.flush()
 
 
 # Now write to the spi port!
@@ -184,8 +192,9 @@ for y in range(height):
 	array[y3]     = gamma[value[1]]
 	array[y3 + 1] = gamma[value[0]]
 	array[y3 + 2] = gamma[value[2]]
-spidev.write(array)
-spidev.flush()
+if not fake:
+    spidev.write(array)
+    spidev.flush()
 
 wait_time = (1.0 / (bpm / 60.0))
 print "wait_time: " + str(wait_time)

@@ -33,6 +33,9 @@ parser.add_argument('-H', '--max_color', type=int, default=255,
 parser.add_argument('-v', '--verbose', action='store_true', default=False,
 		help='Display debug printouts of the current and target colors at every '
 		'sub-interval')
+parser.add_argument('-f', '--fake', action='store_true', default=False,
+		help='Run the program but don\'t actually display lights on '
+                'the LED strip.')
 
 # Set the spi file
 dev       = "/dev/spidev0.0"
@@ -60,6 +63,7 @@ min_color = parser.parse_args().min_color
 max_color = parser.parse_args().max_color
 no_dim = parser.parse_args().no_dim
 verbose = parser.parse_args().verbose
+fake = parser.parse_args().fake
 if verbose: print "Allocating..."
 array = bytearray(height * 3 + 1)
 
@@ -73,8 +77,9 @@ def test_gamma(strip, gamma):
 			strip[y3]     = color
 			strip[y3 + 1] = color
 			strip[y3 + 2] = color
-		spidev.write(strip)
-		spidev.flush()
+                if not fake:
+                    spidev.write(strip)
+                    spidev.flush()
 		time.sleep(0.5)
 
 def rgb_to_gamma(color, gamma):
@@ -163,8 +168,9 @@ def fade_to_color(color, strip, gamma, step=1, interval=0.1, pause=1):
 		# Increment counter. If at next step, then write to spi and wait
 		counter = counter + 1
 		if counter % step == 0: 
-			spidev.write(strip)
-			spidev.flush()
+                        if not fake:
+                            spidev.write(strip)
+                            spidev.flush()
 			time.sleep(interval)
 		# Update the current color for the while condition comparison
 		current = get_current_color(strip, gamma)
@@ -180,8 +186,9 @@ for y in range(height):
 	array[y3]     = gamma[value[1]]
 	array[y3 + 1] = gamma[value[0]]
 	array[y3 + 2] = gamma[value[2]]
-spidev.write(array)
-spidev.flush()
+if not fake:
+    spidev.write(array)
+    spidev.flush()
 
 # Now, glow
 while True:
@@ -203,6 +210,7 @@ while True:
 			array[y3]     = gamma[value[1]]
 			array[y3 + 1] = gamma[value[0]]
 			array[y3 + 2] = gamma[value[2]]
-		spidev.write(array)
-		spidev.flush()
+                if not fake:
+                    spidev.write(array)
+                    spidev.flush()
 		exit(0)
