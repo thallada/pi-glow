@@ -52,8 +52,6 @@ gamma = bytearray(256)
 for i in range(256):
 	gamma[i] = 0x80 | int(pow(float(i) / 255.0, 2.5) * 127.0 + 0.5)
 
-# Create a bytearray to display
-# R, G, B byte per pixel, plus extra '0' byte at end for latch.
 step = parser.parse_args().step
 interval = parser.parse_args().interval
 glow_pause = parser.parse_args().glow_pause
@@ -64,6 +62,8 @@ max_color = parser.parse_args().max_color
 no_dim = parser.parse_args().no_dim
 verbose = parser.parse_args().verbose
 fake = parser.parse_args().fake
+# Create a bytearray to display
+# R, G, B byte per pixel, plus extra '0' byte at end for latch.
 if verbose: print "Allocating..."
 array = bytearray(height * 3 + 1)
 
